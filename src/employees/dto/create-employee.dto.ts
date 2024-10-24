@@ -12,7 +12,7 @@ export class CreateEmployeeDto {
   @IsNotEmpty()
   lastName: string;
 
-  @ApiProperty({ description: 'The email of the employee', example: 'johndoe@example.com' })
+  @ApiProperty({ description: 'The email of the employee', example: 'johndoe@gmail.com' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
@@ -27,7 +27,7 @@ export class CreateEmployeeDto {
   @IsOptional()
   phone2?: string;
 
-  @ApiProperty({ description: 'The unique employee ID', example: 'EMP001' })
+  @ApiProperty({ description: 'The unique employee ID', example: '001' })
   @IsString()
   @IsNotEmpty()
   employeeId: string;
@@ -72,33 +72,38 @@ export class CreateEmployeeDto {
   @IsNotEmpty()
   provinceName: string;
 
-  @ApiProperty({ description: 'The status of the employee', example: true })
+  @ApiProperty({ description: 'The status of the employee', example: false })
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
 
-  @ApiProperty({ description: 'The blacklist status of the employee', example: true })
+  @ApiProperty({ description: 'The blacklist status of the employee', example: false })
   @IsBoolean()
   @IsNotEmpty()
   blackList: boolean;
 
-  @ApiProperty({ description: 'The position ID where the employee works', example: 3 })
+  @ApiProperty({ description: 'The position ID where the employee works', example: 1 })
   @IsNumber()
   @IsNotEmpty()
   position_id: number;
 
-  @ApiProperty({ description: 'The branch ID where the employee is assigned', example: 1 })
+  @ApiProperty({ description: 'The branch ID where the employee is assigned', example: 3 })
   @IsNumber()
   @IsNotEmpty()
   branch_id: number;
 
-  @ApiProperty({ description: 'The user ID associated with the employee (optional)', example: 4 })
+  @ApiProperty({ description: 'The user ID associated with the employee (optional)', example: 1})
   @IsNumber()
   @IsOptional()
   user_id?: number;
 
-  @ApiProperty({ description: 'The ID of the user who created this record', example: 9 })
+  @ApiProperty({ description: 'The ID of the user who created this record', example: 1 })
   @IsNumber()
   @IsNotEmpty()
-  createdBy: number;
+  created_By: number;
+
+  @ApiProperty({ description: 'The ID of the user who update this record', example: 1 })
+  @IsNumber()
+  @IsNotEmpty()
+  updated_By: number;
 }

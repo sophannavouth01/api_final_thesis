@@ -36,23 +36,35 @@ export class EmployeesService {
       }
     }
 
+    // Fetch and assign the branch if provided
+    if (createEmployeeDto.branch_id) {
+      const branch = await this.branchRepository.findOne({
+        where: { id: createEmployeeDto.branch_id },
+      });
+      if (branch) {
+        employee.branch = branch;
+      } else {
+        throw new Error('Branch not found');
+      }
+    }
+
     // Fetch and assign the user if provided
     if (createEmployeeDto.user_id) {
       const user = await this.usersRepository.findOne({
         where: { id: createEmployeeDto.user_id },
       });
       if (user) {
-        employee.user = Promise.resolve(user);
+        employee.user = user;
       }
     }
 
     // Fetch and assign the createdBy user
-    if (createEmployeeDto.createdBy) {
+    if (createEmployeeDto.created_By) {
       const createdByUser = await this.usersRepository.findOne({
-        where: { id: createEmployeeDto.createdBy },
+        where: { id: createEmployeeDto.created_By },
       });
       if (createdByUser) {
-        employee.createBy = Promise.resolve(createdByUser);
+        employee.create_By = createdByUser;
       } else {
         throw new Error('User not found for createdBy');
       }
@@ -71,6 +83,16 @@ export class EmployeesService {
       throw new Error('Employee not found');
     }
 
+    // Fetch and assign the branch if provided
+    if (updateEmployeeDto.branch_id) {
+      const branch = await this.branchRepository.findOne({ where: { id: updateEmployeeDto.branch_id } });
+      if (branch) {
+        employee.branch = branch;
+      } else {
+        throw new Error('Branch not found');
+      }
+    }
+
     // Fetch and assign the position if provided
     if (updateEmployeeDto.position_id) {
       const position = await this.positionsRepository.findOne({
@@ -87,17 +109,17 @@ export class EmployeesService {
         where: { id: updateEmployeeDto.user_id },
       });
       if (user) {
-        employee.user = Promise.resolve(user);
+        employee.user = user;
       }
     }
 
     // Fetch and assign the updatedBy user if provided
-    if (updateEmployeeDto.updatedBy) {
+    if (updateEmployeeDto.updated_By) {
       const updatedByUser = await this.usersRepository.findOne({
-        where: { id: updateEmployeeDto.updatedBy },
+        where: { id: updateEmployeeDto.updated_By },
       });
       if (updatedByUser) {
-        employee.updated_By = Promise.resolve(updatedByUser);
+        employee.updated_By = updatedByUser;
       } else {
         throw new Error('User not found for updatedBy');
       }
@@ -112,13 +134,7 @@ export class EmployeesService {
   // Get all employees
   async findAll(): Promise<Employee[]> {
     return this.employeesRepository.find({
-      relations: [
-        'position',
-        'branch',
-        'user',
-        'createBy',
-        'updated_By',
-      ],
+      relations: ['position', 'branch', 'user', 'create_By', 'updated_By'],
     });
   }
 
@@ -126,13 +142,7 @@ export class EmployeesService {
   async findOne(id: number): Promise<Employee> {
     return this.employeesRepository.findOne({
       where: { id },
-      relations: [
-        'position',
-        'branch',
-        'user',
-        'createBy',
-        'updated_By',
-      ],
+      relations: ['position', 'branch', 'user', 'create_By', 'updated_By'],
     });
   }
 
