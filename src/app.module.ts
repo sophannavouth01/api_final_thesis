@@ -9,6 +9,8 @@ import { PositionsModule } from './positions/positions.module';
 import { BranchModule } from './branch/branch.module';
 import { MillerModule } from './miller/miller.module';
 import { AgentModule } from './agent/agent.module';
+import { RiceStockMillerModule } from './rice-stock-miller/rice-stock-miller.module';
+import { StockDeductFromMillerModule } from './stock-deduct-from-miller/stock-deduct-from-miller.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { AgentModule } from './agent/agent.module';
     BranchModule,
     MillerModule,
     AgentModule,
+    RiceStockMillerModule,
+    StockDeductFromMillerModule,
    
   ],
   controllers: [],
