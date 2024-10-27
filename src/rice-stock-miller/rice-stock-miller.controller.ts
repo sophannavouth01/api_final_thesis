@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RiceStockMillerService } from './rice-stock-miller.service';
 import { CreateRiceStockMillerDto } from './dto/create-rice-stock-miller.dto';
 import { RiceStockMiller } from './entities/rice-stock-miller.entity';
+import { TotalStock } from './entities/total-stock.entity';
 
 @ApiTags('rice-stock-miller')
 @Controller('rice-stock-miller')
@@ -23,11 +24,11 @@ export class RiceStockMillerController {
     return this.riceStockMillerService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a rice stock record by ID' })
-  @ApiResponse({ status: 200, description: 'The rice stock record', type: RiceStockMiller })
-  findOne(@Param('id') id: string): Promise<RiceStockMiller> {
-    return this.riceStockMillerService.findOne(id);
+  @Get('total-stock')
+  @ApiOperation({ summary: 'Get all total stock' })
+  @ApiResponse({ status: 200, description: 'List of total stock records', type: [TotalStock] })
+  getAllTotalStock(): Promise<TotalStock[]> {
+    return this.riceStockMillerService.getAllTotalStock();
   }
 
   @Put(':id')

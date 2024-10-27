@@ -5,6 +5,7 @@ import { CreateRiceStockMillerDto } from './dto/create-rice-stock-miller.dto';
 import { RiceStockMiller } from './entities/rice-stock-miller.entity';
 import { Miller } from 'src/miller/entities/miller.entity';
 import { User } from 'src/users/entities/user.entity';
+import { TotalStock } from './entities/total-stock.entity';
 
 @Injectable()
 export class RiceStockMillerService {
@@ -15,40 +16,28 @@ export class RiceStockMillerService {
     @InjectRepository(Miller)
     private readonly millerRepository: Repository<Miller>,
 
-    @InjectRepository(User)  // Inject the User repository
-    private readonly userRepository: Repository<User>,  // Add the UserRepository here
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(TotalStock)
+    private readonly totalStockRepository: Repository<TotalStock>,
   ) {}
 
   // Create a new rice stock record
   async create(createRiceStockMillerDto: CreateRiceStockMillerDto): Promise<RiceStockMiller> {
-    // Find the Miller record first
-    const miller = await this.millerRepository.findOne({
-      where: { id: createRiceStockMillerDto.miller_id },
-    });
-
+    // Retrieve Miller
+    const miller = await this.millerRepository.findOne({ where: { id: createRiceStockMillerDto.miller_id } });
     if (!miller) {
       throw new NotFoundException('Miller not found');
     }
 
-    // Fetch the created_By user
-    const createdBy = await this.userRepository.findOne({
-      where: { id: createRiceStockMillerDto.created_By },
-    });
-
+    // Retrieve Created By User
+    const createdBy = await this.userRepository.findOne({ where: { id: createRiceStockMillerDto.created_By } });
     if (!createdBy) {
       throw new NotFoundException('User for created_By not found');
     }
 
-    // Fetch the updated_By user (same as created_By for this example)
-    const updatedBy = await this.userRepository.findOne({
-      where: { id: createRiceStockMillerDto.updated_By },
-    });
-
-    if (!updatedBy) {
-      throw new NotFoundException('User for updated_By not found');
-    }
-
-    // Create and save the RiceStockMiller record with the miller and user references
+    // Create a new rice stock record
     const riceStockMiller = this.riceStockMillerRepository.create({
       quantity: createRiceStockMillerDto.quantity,
       totalQuantity: createRiceStockMillerDto.totalQuantity,
@@ -57,18 +46,49 @@ export class RiceStockMillerService {
       paymentStatus: createRiceStockMillerDto.paymentStatus,
       section: createRiceStockMillerDto.section,
       purchaseDate: createRiceStockMillerDto.purchaseDate,
-      created_By: createdBy,  // Assign the created_By user object
-      updated_By: updatedBy,  // Assign the updated_By user object
-      miller: miller,  // Assign the found miller object
+      created_By: createdBy,
+      updated_By: createdBy,
+      miller: miller,
     });
 
-    return this.riceStockMillerRepository.save(riceStockMiller);
+    // Save the new rice stock record
+    await this.riceStockMillerRepository.save(riceStockMiller);
+
+    // Update or create TotalStock
+    await this.updateTotalStock(createRiceStockMillerDto, miller);
+
+    return riceStockMiller;
+  }
+
+  // Function to update or create total stock
+  private async updateTotalStock(createRiceStockMillerDto: CreateRiceStockMillerDto, miller: Miller): Promise<void> {
+    let totalStock = await this.totalStockRepository.findOne({
+      where: { miller: { id: miller.id } },
+    });
+
+    if (totalStock) {
+      // Update existing total stock entry by adding the new values
+      totalStock.Quantity += createRiceStockMillerDto.quantity;
+      totalStock.totalQuantity += createRiceStockMillerDto.totalQuantity;
+      totalStock.totalCost += createRiceStockMillerDto.totalCost;
+    } else {
+      // Create a new total stock entry if none exists
+      totalStock = this.totalStockRepository.create({
+        Quantity: createRiceStockMillerDto.quantity,
+        totalQuantity: createRiceStockMillerDto.totalQuantity,
+        totalCost: createRiceStockMillerDto.totalCost,
+        miller: miller,
+      });
+    }
+
+    // Save the updated or newly created total stock entry
+    await this.totalStockRepository.save(totalStock);
   }
 
   // Retrieve all rice stock records
   async findAll(): Promise<RiceStockMiller[]> {
     return this.riceStockMillerRepository.find({
-      relations: ['created_By', 'updated_By', 'miller'], // Adjust relation names here as well
+      relations: ['created_By', 'updated_By', 'miller'],
     });
   }
 
@@ -78,6 +98,7 @@ export class RiceStockMillerService {
       where: { id },
       relations: ['created_By', 'updated_By', 'miller'],
     });
+
     if (!riceStockMiller) {
       throw new NotFoundException(`RiceStockMiller record with ID ${id} not found`);
     }
@@ -86,36 +107,18 @@ export class RiceStockMillerService {
 
   // Update an existing rice stock record
   async update(id: string, updateRiceStockMillerDto: CreateRiceStockMillerDto): Promise<RiceStockMiller> {
-    const riceStockMiller = await this.findOne(id); // Will throw an error if not found
-
-    // Find the Miller record if provided
-    const miller = await this.millerRepository.findOne({
-      where: { id: updateRiceStockMillerDto.miller_id },
-    });
+    const riceStockMiller = await this.findOne(id);
+    const miller = await this.millerRepository.findOne({ where: { id: updateRiceStockMillerDto.miller_id } });
 
     if (!miller) {
       throw new NotFoundException('Miller not found');
     }
 
-    // Fetch the updated_By user
-    const updatedBy = await this.userRepository.findOne({
-      where: { id: updateRiceStockMillerDto.updated_By },
-    });
-
+    const updatedBy = await this.userRepository.findOne({ where: { id: updateRiceStockMillerDto.updated_By } });
     if (!updatedBy) {
       throw new NotFoundException('User for updated_By not found');
     }
 
-    // Fetch the created_By user
-    const createdBy = await this.userRepository.findOne({
-      where: { id: updateRiceStockMillerDto.created_By },
-    });
-
-    if (!createdBy) {
-      throw new NotFoundException('User for created_By not found');
-    }
-
-    // Merge the update data
     this.riceStockMillerRepository.merge(riceStockMiller, {
       quantity: updateRiceStockMillerDto.quantity,
       totalQuantity: updateRiceStockMillerDto.totalQuantity,
@@ -124,17 +127,40 @@ export class RiceStockMillerService {
       paymentStatus: updateRiceStockMillerDto.paymentStatus,
       section: updateRiceStockMillerDto.section,
       purchaseDate: updateRiceStockMillerDto.purchaseDate,
-      updated_By: updatedBy,  // Assign the user object for update
-      created_By: createdBy,  // Ensure created_By is still correct
-      miller: miller,  // Update miller relation
+      updated_By: updatedBy,
+      miller: miller,
     });
 
-    return this.riceStockMillerRepository.save(riceStockMiller);
+    await this.riceStockMillerRepository.save(riceStockMiller);
+
+    // Update the total stock for the miller
+    await this.updateTotalStock(updateRiceStockMillerDto, miller);
+
+    return riceStockMiller;
   }
 
   // Delete a rice stock record
   async remove(id: string): Promise<void> {
-    const riceStockMiller = await this.findOne(id); // Will throw an error if not found
+    const riceStockMiller = await this.findOne(id);
     await this.riceStockMillerRepository.delete(riceStockMiller.id);
+  }
+
+  // Get all total stock
+  async getAllTotalStock(): Promise<TotalStock[]> {
+    const totalStock = await this.totalStockRepository.find({
+      relations: ['miller'],
+    });
+
+    if (!totalStock || totalStock.length === 0) {
+      throw new NotFoundException('No total stock found');
+    }
+
+    // Cast the relevant fields to numbers
+    return totalStock.map(stock => ({
+      ...stock,
+      Quantity: Number(stock.Quantity),
+      totalQuantity: Number(stock.totalQuantity),
+      totalCost: Number(stock.totalCost),
+    }));
   }
 }

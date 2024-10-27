@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from 'src/roles/entities/role.entity';
 import { Employee } from 'src/employees/entities/employee.entity';
@@ -34,14 +42,6 @@ export class User {
   @Column({ default: true })
   active: boolean;
 
-  @ApiProperty({ example: '2024-10-24T08:01:14.489Z', description: 'The date when the user was created' })
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_At: Date;
-
-  @ApiProperty({ example: 'admin', description: 'The username who created the user' })
-  @Column()
-  created_By: string;
-
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'role_id' })
   role: Role;
@@ -53,5 +53,19 @@ export class User {
   @ApiProperty({ example: 1, description: 'The ID of the branch associated with the user' })
   @ManyToOne(() => Branch)
   @JoinColumn({ name: 'branch_id' })
-  branch: Branch; // Assuming a Branch entity exists and is related to User
+  branch: Branch;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'created_By' })
+  created_By: User;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'updated_By' })
+  updated_By: User;
 }

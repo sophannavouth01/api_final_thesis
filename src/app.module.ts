@@ -11,6 +11,7 @@ import { MillerModule } from './miller/miller.module';
 import { AgentModule } from './agent/agent.module';
 import { RiceStockMillerModule } from './rice-stock-miller/rice-stock-miller.module';
 import { StockDeductFromMillerModule } from './stock-deduct-from-miller/stock-deduct-from-miller.module';
+import { PurchaseByRiceFromMillerModule } from './purchase-by-rice-from-miller/purchase-by-rice-from-miller.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { StockDeductFromMillerModule } from './stock-deduct-from-miller/stock-de
     AgentModule,
     RiceStockMillerModule,
     StockDeductFromMillerModule,
+    PurchaseByRiceFromMillerModule,
    
   ],
   controllers: [],

@@ -6,57 +6,45 @@ import { PrimaryGeneratedColumn } from "typeorm/decorator/columns/PrimaryGenerat
 
 @Entity()
 export class RiceStockMiller {
-    @PrimaryGeneratedColumn()
-    id: string;
+  @PrimaryGeneratedColumn()
+  id: string;
 
-    @ManyToOne(() => Miller, { eager: true, cascade: true })
-    @JoinColumn({ name: 'miller_id' })
-    miller: Miller;
+  @ManyToOne(() => Miller, { eager: true, cascade: true })
+  @JoinColumn({ name: 'miller_id' })
+  miller: Miller;
 
+  @Column()
+  quantity: number;
 
+  @Column()
+  totalQuantity: number;
 
-    @Column()
-    quantity: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  cost: number;
 
-    @Column()
-    totalQuantity: number;
+  @Column('decimal', { precision: 10, scale: 2 })
+  totalCost: number;
 
-    @Column('decimal', { precision: 10, scale: 2 })
-    cost: number;
+  @Column()
+  paymentStatus: string;
 
-    @Column('decimal', { precision: 10, scale: 2 })
-    totalCost: number;
+  @Column()
+  section: string;
 
-    @Column()
-    paymentStatus: string;
+  @Column()
+  purchaseDate: Date;
 
-    @Column()
-    section: string;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @Column()
-    purchaseDate: Date;
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'created_By' })
+  created_By: User;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @ManyToOne(() => User, { eager: true })
-    @JoinColumn({ name: 'created_By' })
-    created_By: User;
-
-
-    @UpdateDateColumn()
-    updatedAt: Date;
-
-
-    @ManyToOne(() => User, { eager: true })
-    @JoinColumn({ name: 'updated_By' })
-    updated_By: User;
-
-
-
-
-
-    
-
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'updated_By' })
+  updated_By: User;
 }
-

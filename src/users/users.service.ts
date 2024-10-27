@@ -1,14 +1,12 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { Employee } from 'src/employees/entities/employee.entity';
-import * as bcrypt from 'bcrypt';
 import { Branch } from 'src/branch/entities/branch.entity';
-import { ResetPasswordDto } from 'src/auth/dto/reset-password.dto';
+import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -20,112 +18,105 @@ export class UsersService {
     @InjectRepository(Employee)
     private readonly employeesRepository: Repository<Employee>,
     @InjectRepository(Branch)
-    private readonly branchesRepository: Repository<Branch>, // Added for branch
+    private readonly branchesRepository: Repository<Branch>,
   ) {}
 
-  // Create a new user
+  // Existing methods...
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
-    const user = this.usersRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-      allowResetPassword: createUserDto.allowResetPassword || true, // Default to true if not provided
-      active: createUserDto.active || true, // Default to true if not provided
-      created_At: createUserDto.created_At || new Date(), // Default to current date if not provided
-    });
+    const user = new User();
+    user.username = createUserDto.username;
+    user.password = hashedPassword;
+    user.email = createUserDto.email;
+    user.allowResetPassword = createUserDto.allowResetPassword ?? true;
+    user.active = createUserDto.active ?? true;
 
-    if (createUserDto.role_id) {
-      user.role = await this.rolesRepository.findOne({ where: { id: createUserDto.role_id } });
+    user.role = await this.findRoleById(createUserDto.role_id);
+    user.employee = await this.findEmployeeById(createUserDto.employee_id);
+    user.branch = await this.findBranchById(createUserDto.branch_id);
+
+    if (createUserDto.created_By) {
+      user.created_By = await this.findOne(createUserDto.created_By);
     }
-
-    if (createUserDto.employee_id) {
-      user.employee = await this.employeesRepository.findOne({ where: { id: createUserDto.employee_id } });
+    if (createUserDto.updated_By) {
+      user.updated_By = await this.findOne(createUserDto.updated_By);
     }
-
-    if (createUserDto.branch_id) {
-      user.branch = await this.branchesRepository.findOne({ where: { id: createUserDto.branch_id } });
-    }
-
-    user.created_By = createUserDto.created_By;
 
     return this.usersRepository.save(user);
   }
 
-  // Get all users
-  findAll(): Promise<User[]> {
+  async findAll(): Promise<User[]> {
     return this.usersRepository.find({
-      select: ['id', 'username', 'email', 'active', 'created_At'], 
-      relations: ['role', 'branch', 'employee'], 
+      select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
+      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
     });
   }
 
-  // Find a specific user by ID
-  findOne(id: number): Promise<User> {
-    return this.usersRepository.findOne({
+  async findOne(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({
       where: { id },
-      select: ['id', 'username', 'email', 'active', 'created_At'], 
-      relations: ['role', 'branch', 'employee'],
+      select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
+      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+    return user;
+  }
+
+  async findByUsername(username: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({
+      where: { username },
+      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
     });
   }
 
-  // Update a user with partial data (like password update, etc.)
-  async update(userId: number, updateData: Partial<User>): Promise<User> {
-    await this.usersRepository.update(userId, updateData);
-    return this.usersRepository.findOne({ where: { id: userId } });  // Return updated user
+  async findByEmail(email: string): Promise<User | undefined> {
+    return this.usersRepository.findOne({
+      where: { email },
+      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+    });
   }
 
-  // Remove a user by ID
+  async update(id: number, updateData: Partial<User>): Promise<User> {
+    if (updateData.password) {
+      const salt = await bcrypt.genSalt();
+      updateData.password = await bcrypt.hash(updateData.password, salt);
+    }
+
+    await this.usersRepository.update(id, updateData);
+
+    return this.findOne(id);
+  }
+
   async remove(id: number): Promise<void> {
     await this.usersRepository.delete(id);
   }
 
-  // Find a user by username
-  async findByUsername(username: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({
-      where: { username },
-      relations: ['role', 'employee', 'branch'],
-    });
+  async findRoleById(roleId: number): Promise<Role> {
+    const role = await this.rolesRepository.findOne({ where: { id: roleId } });
+    if (!role) {
+      throw new NotFoundException(`Role with ID ${roleId} not found.`);
+    }
+    return role;
   }
 
-  // Find a user by email
-  async findByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { email } });
+  async findEmployeeById(employeeId: number): Promise<Employee> {
+    const employee = await this.employeesRepository.findOne({ where: { id: employeeId } });
+    if (!employee) {
+      throw new NotFoundException(`Employee with ID ${employeeId} not found.`);
+    }
+    return employee;
   }
 
-  // Find a user by ID with relations
-  async findByIdWithRelations(userId: number): Promise<any> {
-    return this.usersRepository.findOne({
-      where: { id: userId },
-      relations: ['role', 'employee', 'branch'],
-    });
-  }
-
-  // Reset password method
-  async resetPassword(email: string, resetPasswordDto: ResetPasswordDto) {
-    const { newPassword, confirmPassword } = resetPasswordDto;
-
-    // Check if passwords match
-    if (newPassword !== confirmPassword) {
-      throw new BadRequestException('Passwords do not match.');
+  async findBranchById(branchId: number): Promise<Branch> {
+    const branch = await this.branchesRepository.findOne({ where: { id: branchId } });
+    if (!branch) {
+      throw new NotFoundException(`Branch with ID ${branchId} not found.`);
     }
-
-    // Find the user by email
-    const user = await this.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('User not found.');
-    }
-
-    // Check if the user is allowed to reset password
-    if (!user.allowResetPassword) {
-      throw new BadRequestException('Password reset is not allowed for this user.');
-    }
-
-    // Hash the new password and update the user's password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.update(user.id, { password: hashedPassword });
-
-    return { message: 'Password reset successfully.' };
+    return branch;
   }
 }

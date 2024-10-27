@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpStatus, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -12,40 +12,78 @@ export class UsersController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, description: 'The user has been successfully created.', type: User })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createUserDto);
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'The user has been successfully created.', type: User })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad Request.' })
+  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+    try {
+      return await this.usersService.create(createUserDto);
+    } catch (error) {
+      throw new BadRequestException('Failed to create user. Please check the input data.');
+    }
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of all users', type: [User] })
-  findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  @ApiResponse({ status: HttpStatus.OK, description: 'List of all users', type: [User] })
+  async findAll(): Promise<User[]> {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiResponse({ status: 200, description: 'The found record', type: User })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  findOne(@Param('id') id: string): Promise<User> {
-    return this.usersService.findOne(+id);
+  @ApiResponse({ status: HttpStatus.OK, description: 'The found record', type: User })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found.' })
+  async findOne(@Param('id') id: string): Promise<User> {
+    const user = await this.usersService.findOne(+id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+    return user;
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a user by ID' })
-  @ApiResponse({ status: 200, description: 'The user has been successfully updated.', type: User })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
-    return this.usersService.update(+id, updateUserDto);
+  @ApiResponse({ status: HttpStatus.OK, description: 'The user has been successfully updated.', type: User })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found.' })
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
+    const existingUser = await this.usersService.findOne(+id);
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+
+    // Construct updateData with fields from updateUserDto only if they are provided
+    const updateData: Partial<User> = {};
+
+    if (updateUserDto.username) updateData.username = updateUserDto.username;
+    if (updateUserDto.email) updateData.email = updateUserDto.email;
+    if (updateUserDto.allowResetPassword !== undefined) updateData.allowResetPassword = updateUserDto.allowResetPassword;
+    if (updateUserDto.active !== undefined) updateData.active = updateUserDto.active;
+    if (updateUserDto.createdAt) updateData.createdAt = updateUserDto.createdAt;
+
+    if (updateUserDto.updated_By) {
+      const updaterUser = await this.usersService.findOne(updateUserDto.updated_By);
+      updateData.updated_By = updaterUser;
+    }
+
+    if (updateUserDto.role_id) {
+      updateData.role = await this.usersService.findRoleById(updateUserDto.role_id);
+    }
+    if (updateUserDto.branch_id) {
+      updateData.branch = await this.usersService.findBranchById(updateUserDto.branch_id);
+    }
+
+    return await this.usersService.update(+id, updateData);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID' })
-  @ApiResponse({ status: 204, description: 'The user has been successfully deleted.' })
-  @ApiResponse({ status: 404, description: 'User not found.' })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.usersService.remove(+id);
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'The user has been successfully deleted.' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found.' })
+  async remove(@Param('id') id: string): Promise<void> {
+    const existingUser = await this.usersService.findOne(+id);
+    if (!existingUser) {
+      throw new NotFoundException(`User with ID ${id} not found.`);
+    }
+    await this.usersService.remove(+id);
   }
 }
