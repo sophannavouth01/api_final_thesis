@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreatePurchaseByRiceFromMillerDto {
-    @ApiProperty({ description: 'ID of the associated miller', example: 2 })
+    @ApiProperty({ description: 'ID of the associated miller', example: 2, required: false })
     @IsNumber()
-    @IsNotEmpty()
-    miller_id: number;  
+    @IsOptional()
+    miller_id: number | null;
   
     @ApiProperty({ description: 'Quantity of rice stock', example: 1 })
     @IsNumber()
@@ -37,7 +37,7 @@ export class CreatePurchaseByRiceFromMillerDto {
     @IsNotEmpty()
     section: string;
   
-    @ApiProperty({ description: 'Status like Puchese or transfer', example: 'Puchase' })
+    @ApiProperty({ description: 'Status like Purchase or Transfer', example: 'Purchase' })
     @IsString()
     @IsNotEmpty()
     status: string;
@@ -47,6 +47,16 @@ export class CreatePurchaseByRiceFromMillerDto {
     @IsNotEmpty()
     purchaseDate: Date;
     
+    @ApiProperty({ description: 'ID of the associated branch', example: 3, required: false })
+    @IsNumber()
+    @IsOptional()
+    branch_id: number | null;
+
+    @ApiProperty({ description: 'ID of the associated agent', example: 1, required: false })
+    @IsNumber()
+    @IsOptional()
+    agent_id: number | null;
+
     @ApiProperty({ description: 'The ID of the user who created this record', example: 1 })
     @IsNumber()
     @IsNotEmpty()

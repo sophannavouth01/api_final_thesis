@@ -21,6 +21,10 @@ export class Branch {
 
   @Column()
   provinceName: string;
+
+  @Column({ default: true })
+  status: boolean;
+  
  // Relationship with User for created_By
  @ManyToOne(() => Employee)
  @JoinColumn({ name: 'brand_manager' })

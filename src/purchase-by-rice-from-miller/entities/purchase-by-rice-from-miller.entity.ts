@@ -1,3 +1,5 @@
+import { Agent } from "src/agent/entities/agent.entity";
+import { Branch } from "src/branch/entities/branch.entity";
 import { Miller } from "src/miller/entities/miller.entity";
 import { User } from "src/users/entities/user.entity";
 import { CreateDateColumn, Entity, JoinColumn, ManyToOne, UpdateDateColumn } from "typeorm";
@@ -9,9 +11,9 @@ export class PurchaseByRiceFromMiller {
     @PrimaryGeneratedColumn()
     id: string;
   
-    @ManyToOne(() => Miller, { eager: true, cascade: true })
+    @ManyToOne(() => Miller, { eager: true, cascade: true, nullable: true })
     @JoinColumn({ name: 'miller_id' })
-    miller: Miller;
+    miller: Miller | null;
   
     @Column()
     quantity: number;
@@ -36,6 +38,14 @@ export class PurchaseByRiceFromMiller {
 
     @Column()
     purchaseDate: Date;
+
+    @ManyToOne(() => Branch, { eager: true, cascade: true, nullable: true })
+    @JoinColumn({ name: 'branch_id' })
+    branch: Branch | null;
+
+    @ManyToOne(() => Agent, { eager: true, cascade: true, nullable: true })
+    @JoinColumn({ name: 'agent_id' })
+    agent: Agent | null;
   
     @CreateDateColumn()
     createdAt: Date;

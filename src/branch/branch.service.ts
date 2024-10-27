@@ -61,7 +61,7 @@ export class BranchsService {
   // Find all branches
   async findAll(): Promise<Branch[]> {
     return this.branchRepository.find({
-      select: ['id', 'name', 'villageName', 'communeName', 'districtName', 'provinceName'],
+      select: ['id', 'name', 'villageName', 'communeName', 'districtName', 'provinceName','status'],
       relations: [
         'branchManager', // Include branchManager
         'created_By', 'created_By.role', 
@@ -74,7 +74,7 @@ export class BranchsService {
   async findOne(id: number): Promise<Branch> {
     const branch = await this.branchRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'villageName', 'communeName', 'districtName', 'provinceName'],
+      select: ['id', 'name', 'villageName', 'communeName', 'districtName', 'provinceName','status'],
       relations: [
         'branchManager', // Include branchManager
         'created_By', 'created_By.role', 

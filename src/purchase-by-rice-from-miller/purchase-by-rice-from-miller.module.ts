@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PurchaseByRiceFromMiller } from './entities/purchase-by-rice-from-miller.entity';
 import { Miller } from 'src/miller/entities/miller.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Branch } from 'src/branch/entities/branch.entity';
+import { Agent } from 'src/agent/entities/agent.entity'; // Corrected import path
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseByRiceFromMiller, Miller, User])],
+  imports: [TypeOrmModule.forFeature([PurchaseByRiceFromMiller, Miller, User, Branch, Agent])],
   controllers: [PurchaseByRiceFromMillerController],
   providers: [PurchaseByRiceFromMillerService],
 })

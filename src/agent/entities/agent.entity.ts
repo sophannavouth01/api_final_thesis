@@ -22,6 +22,10 @@ import { Branch } from 'src/branch/entities/branch.entity';
     @Column()
     name: string;
   
+    @ApiProperty({ description: 'The gender of the employee', example: 'Male' })
+    @Column()
+    gender: string;
+    
     @ApiProperty({ example: '1990-01-01', description: 'The date of birth of the employee' })
     @Column()
     dateOfBirth: Date;

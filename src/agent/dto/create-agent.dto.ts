@@ -13,7 +13,11 @@ export class CreateAgentDto {
   @IsNotEmpty()
   dateOfBirth: Date;
 
-
+  @ApiProperty({ description: 'The gender of the employee', example: 'Male' })
+  @IsString()
+  @IsNotEmpty()
+  gender: string;
+  
   @ApiProperty({ example: 5000, description: 'The commission percentage for the agent' })
   @IsNumber()
   @IsNotEmpty()

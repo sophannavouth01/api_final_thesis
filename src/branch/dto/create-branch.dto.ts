@@ -1,5 +1,5 @@
 
-import { IsString, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsBoolean, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBranchsDto {
@@ -42,6 +42,11 @@ export class CreateBranchsDto {
   @IsString()
   @IsNotEmpty()
   provinceName: string;
+
+  @ApiProperty({ description: 'Indicates whether the user is active', example: true })
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
 
   @ApiProperty({
     description: 'The Branch  ID of the user who created this record',
