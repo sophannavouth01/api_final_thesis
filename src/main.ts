@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -12,7 +11,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('auth')
     .addTag('users')
-   
+
     .addBearerAuth()
     .build();
 
