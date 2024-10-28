@@ -57,6 +57,11 @@ export class CreatePurchaseByRiceFromMillerDto {
     @IsOptional()
     agent_id: number | null;
 
+    @ApiProperty({ description: 'ID of the associated customer', example: 1, required: false })
+    @IsNumber()
+    @IsOptional()
+    customer_id: number | null;
+
     @ApiProperty({ description: 'The ID of the user who created this record', example: 1 })
     @IsNumber()
     @IsNotEmpty()

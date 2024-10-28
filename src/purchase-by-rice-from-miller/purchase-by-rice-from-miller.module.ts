@@ -7,9 +7,10 @@ import { Miller } from 'src/miller/entities/miller.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { Agent } from 'src/agent/entities/agent.entity'; // Corrected import path
+import { Customer } from 'src/customer/entities/customer.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseByRiceFromMiller, Miller, User, Branch, Agent])],
+  imports: [TypeOrmModule.forFeature([PurchaseByRiceFromMiller, Miller, User, Branch, Agent,Customer])],
   controllers: [PurchaseByRiceFromMillerController],
   providers: [PurchaseByRiceFromMillerService],
 })

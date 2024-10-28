@@ -8,6 +8,7 @@ import { Miller } from 'src/miller/entities/miller.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { Agent } from 'src/agent/entities/agent.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Customer } from 'src/customer/entities/customer.entity';
 
 @Injectable()
 export class PurchaseByRiceFromMillerService {
@@ -26,6 +27,10 @@ export class PurchaseByRiceFromMillerService {
 
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
+
   ) {}
 
   async create(createPurchaseByRiceFromMillerDto: CreatePurchaseByRiceFromMillerDto): Promise<PurchaseByRiceFromMiller> {
@@ -51,6 +56,12 @@ export class PurchaseByRiceFromMillerService {
       purchaseRecord.agent = agent || null;
     } else {
       purchaseRecord.agent = null;
+    }
+    if (createPurchaseByRiceFromMillerDto.customer_id) {
+      const customer = await this.customerRepository.findOne({ where: { id: createPurchaseByRiceFromMillerDto.customer_id } });
+      purchaseRecord.customer = customer || null;
+    } else {
+      purchaseRecord.customer = null;
     }
 
     const createdBy = await this.userRepository.findOne({ where: { id: createPurchaseByRiceFromMillerDto.created_By } });
@@ -95,6 +106,13 @@ export class PurchaseByRiceFromMillerService {
       purchaseRecord.agent = null;
     }
 
+    if (updatePurchaseByRiceFromMillerDto.customer_id) {
+      const customer = await this.customerRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.customer_id } });
+      purchaseRecord.customer = customer || null;
+    } else {
+      purchaseRecord.customer = null;
+    }
+
     const updatedBy = await this.userRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.updated_By } });
     if (!updatedBy) throw new NotFoundException('User for updated_By not found');
     
@@ -106,14 +124,14 @@ export class PurchaseByRiceFromMillerService {
 
   async findAll(): Promise<PurchaseByRiceFromMiller[]> {
     return this.purchaseByRiceFromMillerRepository.find({
-      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent'],
+      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','customer'],
     });
   }
 
   async findOne(id: number): Promise<PurchaseByRiceFromMiller> {
     const purchaseRecord = await this.purchaseByRiceFromMillerRepository.findOne({
       where: { id: id.toString() },
-      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent'],
+      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','customer'],
     });
 
     if (!purchaseRecord) {
