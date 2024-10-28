@@ -18,9 +18,21 @@ import { Branch } from 'src/branch/entities/branch.entity';
     @PrimaryGeneratedColumn()
     id: number;
   
-    @ApiProperty({ example: 'John Doe', description: 'The name of the agent' })
+    @ApiProperty({ example: 'John Doe', description: 'The  first name of the agent' })
     @Column()
-    name: string;
+    firstName: string;
+
+    @ApiProperty({ example: 'John Doe', description: 'The  last name of the agent' })
+    @Column()
+    lastName: string;
+
+    @ApiProperty({ example: 'John Doe', description: 'The english name of the agent' })
+    @Column()
+    enName: string;
+
+    @ApiProperty({ example: 'John Doe', description: 'The email of the agent' })
+    @Column()
+    email: string;
   
     @ApiProperty({ description: 'The gender of the employee', example: 'Male' })
     @Column()
@@ -41,10 +53,6 @@ import { Branch } from 'src/branch/entities/branch.entity';
     @ApiProperty({ example: '987654321', description: 'The secondary phone number of the agent (optional)' })
     @Column({ nullable: true })
     phone2: string;
-  
-    @ApiProperty({ example: '123123123', description: 'The tertiary phone number of the agent (optional)' })
-    @Column({ nullable: true })
-    phone3: string;
   
     @ApiProperty({ example: 'Manager', description: 'The position of the agent' })
     @ManyToOne(() => Position)
@@ -68,6 +76,10 @@ import { Branch } from 'src/branch/entities/branch.entity';
     @Column()
     districtName: string;
   
+    @ApiProperty({ example: 'Single', description: 'Marital status of the customer' })
+    @Column()
+    marriedStatus: string;
+    
     @ApiProperty({ example: 'Province D', description: 'The province name where the agent resides' })
     @Column()
     provinceName: string;

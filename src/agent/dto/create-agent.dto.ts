@@ -1,19 +1,40 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDate, IsNumber, IsOptional, IsNotEmpty, IsInt, IsDateString, IsBoolean } from 'class-validator';
+import { IsString, IsDate, IsNumber, IsOptional, IsNotEmpty, IsInt, IsDateString, IsBoolean, IsEmail } from 'class-validator';
 
 export class CreateAgentDto {
-  @ApiProperty({ example: 'John Doe', description: 'The name of the agent' })
+  @ApiProperty({ description: 'The first name of the agent', example: 'John' })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  firstName: string;
 
-  @ApiProperty({ description: 'The date of birth of the employee', example: '1990-01-01',
+  @ApiProperty({ description: 'The last name of the agent', example: 'Doe' })
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty({ description: 'The English name of the agent', example: 'Doe' })
+  @IsString()
+  @IsNotEmpty()
+  enName: string;
+
+  @ApiProperty({ description: 'The email of the agent', example: 'johndoe@gmail.com' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+
+  @ApiProperty({ example: 'Single', description: 'Marital status of the customer' })
+  @IsString()
+  @IsNotEmpty()
+  marriedStatus: string;
+  
+  @ApiProperty({ description: 'The date of birth of the agent', example: '1990-01-01',
   })
   @IsDate()
   @IsNotEmpty()
   dateOfBirth: Date;
 
-  @ApiProperty({ description: 'The gender of the employee', example: 'Male' })
+  @ApiProperty({ description: 'The gender of the agent', example: 'ប្រុស' })
   @IsString()
   @IsNotEmpty()
   gender: string;
@@ -32,11 +53,6 @@ export class CreateAgentDto {
   @IsString()
   @IsOptional()
   phone2?: string;
-
-  @ApiProperty({ example: '123123123', description: 'The tertiary phone number of the agent (optional)' })
-  @IsString()
-  @IsOptional()
-  phone3?: string;
 
   @ApiProperty({ example: 1, description: 'The ID of the position' })
   @IsInt()

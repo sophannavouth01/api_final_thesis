@@ -83,44 +83,66 @@ export class PurchaseByRiceFromMillerService {
 
   async update(id: number, updatePurchaseByRiceFromMillerDto: UpdatePurchaseByRiceFromMillerDto): Promise<PurchaseByRiceFromMiller> {
     const purchaseRecord = await this.findOne(id);
-
-    if (updatePurchaseByRiceFromMillerDto.miller_id) {
+  
+    if (updatePurchaseByRiceFromMillerDto.miller_id !== undefined) {
       const miller = await this.millerRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.miller_id } });
       if (!miller) throw new NotFoundException('Miller not found');
       purchaseRecord.miller = miller;
-    } else {
-      purchaseRecord.miller = null;
     }
-
-    if (updatePurchaseByRiceFromMillerDto.branch_id) {
+  
+    if (updatePurchaseByRiceFromMillerDto.branch_id !== undefined) {
       const branch = await this.branchRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.branch_id } });
       purchaseRecord.branch = branch || null;
-    } else {
-      purchaseRecord.branch = null;
     }
-
-    if (updatePurchaseByRiceFromMillerDto.agent_id) {
+  
+    if (updatePurchaseByRiceFromMillerDto.agent_id !== undefined) {
       const agent = await this.agentRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.agent_id } });
       purchaseRecord.agent = agent || null;
-    } else {
-      purchaseRecord.agent = null;
     }
-
-    if (updatePurchaseByRiceFromMillerDto.customer_id) {
+  
+    if (updatePurchaseByRiceFromMillerDto.customer_id !== undefined) {
       const customer = await this.customerRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.customer_id } });
       purchaseRecord.customer = customer || null;
-    } else {
-      purchaseRecord.customer = null;
     }
-
-    const updatedBy = await this.userRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.updated_By } });
-    if (!updatedBy) throw new NotFoundException('User for updated_By not found');
-    
-    purchaseRecord.updated_By = updatedBy;
-    Object.assign(purchaseRecord, updatePurchaseByRiceFromMillerDto);
-
+  
+    if (updatePurchaseByRiceFromMillerDto.updated_By !== undefined) {
+      const updatedBy = await this.userRepository.findOne({ where: { id: updatePurchaseByRiceFromMillerDto.updated_By } });
+      if (!updatedBy) throw new NotFoundException('User for updated_By not found');
+      purchaseRecord.updated_By = updatedBy;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.paymentStatus !== undefined) {
+      purchaseRecord.paymentStatus = updatePurchaseByRiceFromMillerDto.paymentStatus;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.quantity !== undefined) {
+      purchaseRecord.quantity = updatePurchaseByRiceFromMillerDto.quantity;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.totalQuantity !== undefined) {
+      purchaseRecord.totalQuantity = updatePurchaseByRiceFromMillerDto.totalQuantity;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.cost !== undefined) {
+      purchaseRecord.cost = updatePurchaseByRiceFromMillerDto.cost;
+      purchaseRecord.totalCost = purchaseRecord.cost * (purchaseRecord.totalQuantity || 1); // Update totalCost if cost or totalQuantity are provided
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.section !== undefined) {
+      purchaseRecord.section = updatePurchaseByRiceFromMillerDto.section;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.status !== undefined) {
+      purchaseRecord.status = updatePurchaseByRiceFromMillerDto.status;
+    }
+  
+    if (updatePurchaseByRiceFromMillerDto.purchaseDate !== undefined) {
+      purchaseRecord.purchaseDate = updatePurchaseByRiceFromMillerDto.purchaseDate;
+    }
+  
     return await this.purchaseByRiceFromMillerRepository.save(purchaseRecord);
   }
+  
 
   async findAll(): Promise<PurchaseByRiceFromMiller[]> {
     return this.purchaseByRiceFromMillerRepository.find({
