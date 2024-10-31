@@ -34,7 +34,7 @@ export class CreateEmployeeDto {
 
   @ApiProperty({ description: 'The base salary of the employee', example: 5000 })
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   baseSalary: number;
 
   @ApiProperty({ description: 'The date of birth of the employee', example: '1990-01-01' })

@@ -17,7 +17,7 @@ export class Employee {
   @Column()
   email: string;
 
-  @Column('decimal', { precision: 10, scale: 2 }) 
+  @Column('decimal', { nullable: true }) 
   baseSalary: number;
 
   @Column()
