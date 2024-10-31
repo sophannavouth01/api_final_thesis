@@ -76,7 +76,7 @@ export class AuthService {
       throw new BadRequestException('Passwords do not match.');
     }
 
-    // Call findByEmail from UsersService
+    // Find user by email
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('User not found.');

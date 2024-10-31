@@ -136,24 +136,26 @@ export class UsersService {
     try {
       const user = await this.findOne(id);
       if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-
-      // Only update fields if they are provided in updateData
-      if (updateData.password) {
+  
+      // Only hash the password if it’s provided in plain text
+      if (updateData.password && !updateData.password.startsWith('$2b$')) {  // Check for bcrypt hash format
         const salt = await bcrypt.genSalt();
         user.password = await bcrypt.hash(updateData.password, salt);
+      } else if (updateData.password) {
+        user.password = updateData.password;  // Save directly if already hashed
       }
-
+  
       if (updateData.username) user.username = updateData.username;
       if (updateData.email) user.email = updateData.email;
       if (typeof updateData.allowResetPassword !== 'undefined') user.allowResetPassword = updateData.allowResetPassword;
       if (typeof updateData.active !== 'undefined') user.active = updateData.active;
-
+  
       if (updateData.role) user.role = await this.findRoleById(updateData.role.id);
       if (updateData.employee) user.employee = await this.findEmployeeById(updateData.employee.id);
       if (updateData.branch) user.branch = await this.findBranchById(updateData.branch.id);
       if (updateData.created_By) user.created_By = await this.findOne(updateData.created_By.id);
       if (updateData.updated_By) user.updated_By = await this.findOne(updateData.updated_By.id);
-
+  
       // Save updated user
       await this.usersRepository.save(user);
       return user;
@@ -162,6 +164,7 @@ export class UsersService {
       throw new BadRequestException(`Failed to update user with ID ${id}.`);
     }
   }
+  
 
   async remove(id: number): Promise<void> {
     try {
