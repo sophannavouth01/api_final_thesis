@@ -24,12 +24,12 @@ export class Branch {
 
   @Column({ default: true })
   status: boolean;
-  
- // Relationship with User for created_By
- @ManyToOne(() => Employee)
- @JoinColumn({ name: 'brand_manager' })
- branchManager: Employee;
- 
+
+  // Nullable relationship with Employee for branchManager
+  @ManyToOne(() => Employee, { nullable: true })
+  @JoinColumn({ name: 'branch_manager' })
+  branchManager: Employee | null;
+
   // Relationship with User for created_By
   @ManyToOne(() => User)
   @JoinColumn({ name: 'created_By' })

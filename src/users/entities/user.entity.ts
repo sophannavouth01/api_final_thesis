@@ -18,7 +18,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ example: 'Supper Admin', description: 'The username of the user' })
+  @ApiProperty({ example: 'Super Admin', description: 'The username of the user' })
   @Column({ unique: true })
   username: string;
 
@@ -26,13 +26,13 @@ export class User {
   @Column()
   password: string;
 
-  @ApiProperty({ example: 'Superadmin@example.com', description: 'The email of the user' })
+  @ApiProperty({ example: 'SuperAdmin@123', description: 'The confirm password of the user' })
+  @Column({ nullable: true })
+  confirmPassword: string;
+
+  @ApiProperty({ example: 'superadmin@example.com', description: 'The email of the user' })
   @Column()
   email: string;
-
-  @ApiProperty({ example: 'SuperAdmin@123', description: 'The confirm password of the user' })
-  @Column()
-  confirmPassword: string;
 
   @ApiProperty({ example: true, description: 'Whether the user is allowed to reset their password' })
   @Column({ default: true })
@@ -46,26 +46,25 @@ export class User {
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-  @ManyToOne(() => Employee)
+  @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'employee_id' })
-  employee: Employee;
+  employee: Employee | null;
 
-  @ApiProperty({ example: 1, description: 'The ID of the branch associated with the user' })
-  @ManyToOne(() => Branch)
+  @ManyToOne(() => Branch, { nullable: true })
   @JoinColumn({ name: 'branch_id' })
-  branch: Branch;
+  branch: Branch | null;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'created_By' })
-  created_By: User;
+  created_By: User | null;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'updated_By' })
-  updated_By: User;
+  updated_By: User | null;
 }

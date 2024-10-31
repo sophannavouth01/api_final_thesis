@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -21,102 +21,193 @@ export class UsersService {
     private readonly branchesRepository: Repository<Branch>,
   ) {}
 
-  // Existing methods...
-
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+    try {
+      // Check if password and confirmPassword match
+      if (createUserDto.password !== createUserDto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
 
-    const user = new User();
-    user.username = createUserDto.username;
-    user.password = hashedPassword;
-    user.email = createUserDto.email;
-    user.allowResetPassword = createUserDto.allowResetPassword ?? true;
-    user.active = createUserDto.active ?? true;
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+      const hashedConfirmPassword = await bcrypt.hash(createUserDto.confirmPassword, salt);
 
-    user.role = await this.findRoleById(createUserDto.role_id);
-    user.employee = await this.findEmployeeById(createUserDto.employee_id);
-    user.branch = await this.findBranchById(createUserDto.branch_id);
+      const user = new User();
+      user.username = createUserDto.username;
+      user.password = hashedPassword;
+      user.confirmPassword = hashedConfirmPassword;  // Save the hashed confirm password
+      user.email = createUserDto.email;
+      user.allowResetPassword = createUserDto.allowResetPassword ?? true;
+      user.active = createUserDto.active ?? true;
+      user.createdAt = createUserDto.createdAt || new Date();
 
-    if (createUserDto.created_By) {
-      user.created_By = await this.findOne(createUserDto.created_By);
+      // Only assign relationships if IDs are provided and valid
+      if (createUserDto.role_id) {
+        user.role = await this.findRoleById(createUserDto.role_id);
+      }
+
+      if (createUserDto.employee_id) {
+        user.employee = await this.findEmployeeById(createUserDto.employee_id);
+      }
+
+      if (createUserDto.branch_id) {
+        user.branch = await this.findBranchById(createUserDto.branch_id);
+      }
+
+      if (createUserDto.created_By) {
+        user.created_By = await this.findOne(createUserDto.created_By);
+      }
+
+      if (createUserDto.updated_By) {
+        user.updated_By = await this.findOne(createUserDto.updated_By);
+      }
+
+      // Save the new user to the database
+      return await this.usersRepository.save(user);
+
+    } catch (error) {
+      console.error('Failed to create user:', error.message);
+      
+      // Handle specific errors
+      if (error instanceof NotFoundException) {
+        throw new BadRequestException(error.message); // Re-throw with a 400 error for better feedback
+      }
+
+      // General catch-all for other errors
+      throw new BadRequestException('Failed to create user. Please check the input data.');
     }
-    if (createUserDto.updated_By) {
-      user.updated_By = await this.findOne(createUserDto.updated_By);
-    }
-
-    return this.usersRepository.save(user);
   }
 
+
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find({
-      select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
-      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
-    });
+    try {
+      return await this.usersRepository.find({
+        select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
+        relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+      });
+    } catch (error) {
+      console.error('Failed to find users:', error.message);
+      throw new BadRequestException('Failed to retrieve users.');
+    }
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
-      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found.`);
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { id },
+        select: ['id', 'username', 'email', 'active', 'createdAt', 'allowResetPassword'],
+        relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+      });
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found.`);
+      }
+      return user;
+    } catch (error) {
+      console.error('Failed to find user:', error.message);
+      throw new BadRequestException(`Failed to retrieve user with ID ${id}.`);
     }
-    return user;
   }
 
   async findByUsername(username: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({
-      where: { username },
-      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
-    });
+    try {
+      return await this.usersRepository.findOne({
+        where: { username },
+        relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+      });
+    } catch (error) {
+      console.error('Failed to find user by username:', error.message);
+      throw new BadRequestException('Failed to retrieve user by username.');
+    }
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({
-      where: { email },
-      relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
-    });
+    try {
+      return await this.usersRepository.findOne({
+        where: { email },
+        relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+      });
+    } catch (error) {
+      console.error('Failed to find user by email:', error.message);
+      throw new BadRequestException('Failed to retrieve user by email.');
+    }
   }
 
   async update(id: number, updateData: Partial<User>): Promise<User> {
-    if (updateData.password) {
-      const salt = await bcrypt.genSalt();
-      updateData.password = await bcrypt.hash(updateData.password, salt);
+    try {
+      const user = await this.findOne(id);
+      if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+
+      // Only update fields if they are provided in updateData
+      if (updateData.password) {
+        const salt = await bcrypt.genSalt();
+        user.password = await bcrypt.hash(updateData.password, salt);
+      }
+
+      if (updateData.username) user.username = updateData.username;
+      if (updateData.email) user.email = updateData.email;
+      if (typeof updateData.allowResetPassword !== 'undefined') user.allowResetPassword = updateData.allowResetPassword;
+      if (typeof updateData.active !== 'undefined') user.active = updateData.active;
+
+      if (updateData.role) user.role = await this.findRoleById(updateData.role.id);
+      if (updateData.employee) user.employee = await this.findEmployeeById(updateData.employee.id);
+      if (updateData.branch) user.branch = await this.findBranchById(updateData.branch.id);
+      if (updateData.created_By) user.created_By = await this.findOne(updateData.created_By.id);
+      if (updateData.updated_By) user.updated_By = await this.findOne(updateData.updated_By.id);
+
+      // Save updated user
+      await this.usersRepository.save(user);
+      return user;
+    } catch (error) {
+      console.error('Failed to update user:', error.message);
+      throw new BadRequestException(`Failed to update user with ID ${id}.`);
     }
-
-    await this.usersRepository.update(id, updateData);
-
-    return this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+    try {
+      await this.usersRepository.delete(id);
+    } catch (error) {
+      console.error('Failed to remove user:', error.message);
+      throw new BadRequestException(`Failed to delete user with ID ${id}.`);
+    }
   }
 
   async findRoleById(roleId: number): Promise<Role> {
-    const role = await this.rolesRepository.findOne({ where: { id: roleId } });
-    if (!role) {
-      throw new NotFoundException(`Role with ID ${roleId} not found.`);
+    try {
+      const role = await this.rolesRepository.findOne({ where: { id: roleId } });
+      if (!role) {
+        throw new NotFoundException(`Role with ID ${roleId} not found.`);
+      }
+      return role;
+    } catch (error) {
+      console.error('Failed to find role:', error.message);
+      throw new BadRequestException(`Failed to retrieve role with ID ${roleId}.`);
     }
-    return role;
   }
 
   async findEmployeeById(employeeId: number): Promise<Employee> {
-    const employee = await this.employeesRepository.findOne({ where: { id: employeeId } });
-    if (!employee) {
-      throw new NotFoundException(`Employee with ID ${employeeId} not found.`);
+    try {
+      const employee = await this.employeesRepository.findOne({ where: { id: employeeId } });
+      if (!employee) {
+        throw new NotFoundException(`Employee with ID ${employeeId} not found.`);
+      }
+      return employee;
+    } catch (error) {
+      console.error('Failed to find employee:', error.message);
+      throw new BadRequestException(`Failed to retrieve employee with ID ${employeeId}.`);
     }
-    return employee;
   }
 
   async findBranchById(branchId: number): Promise<Branch> {
-    const branch = await this.branchesRepository.findOne({ where: { id: branchId } });
-    if (!branch) {
-      throw new NotFoundException(`Branch with ID ${branchId} not found.`);
+    try {
+      const branch = await this.branchesRepository.findOne({ where: { id: branchId } });
+      if (!branch) {
+        throw new NotFoundException(`Branch with ID ${branchId} not found.`);
+      }
+      return branch;
+    } catch (error) {
+      console.error('Failed to find branch:', error.message);
+      throw new BadRequestException(`Failed to retrieve branch with ID ${branchId}.`);
     }
-    return branch;
   }
 }

@@ -40,20 +40,62 @@ export class BranchsService {
       throw new NotFoundException('User (updated_By) not found');
     }
 
-    // Fetch branch manager (Employee)
-    const branchManager = await this.employeeRepository.findOne({
-      where: { id: createBranchDto.branchManager },
-    });
-    if (!branchManager) {
-      throw new NotFoundException('Employee (branchManager) not found');
+    // Fetch branch manager (Employee) only if branchManager is provided
+    let branchManager = null;
+    if (createBranchDto.branchManager) {
+      branchManager = await this.employeeRepository.findOne({
+        where: { id: createBranchDto.branchManager },
+      });
+      if (!branchManager) {
+        throw new NotFoundException('Employee (branchManager) not found');
+      }
     }
 
     const branch = this.branchRepository.create({
       ...createBranchDto,
-      branchManager, // Set the branchManager relation
+      branchManager, // Set the branchManager relation if provided
       created_By: createdBy,
       updated_By: updatedBy,
     });
+
+    return this.branchRepository.save(branch);
+  }
+
+  // Update a branch by ID
+  async update(id: number, updateBranchDto: UpdateBranchDto): Promise<Branch> {
+    const branch = await this.findOne(id);
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+
+    if (updateBranchDto.updated_By) {
+      const updatedBy = await this.usersRepository.findOne({ where: { id: updateBranchDto.updated_By } });
+      if (!updatedBy) {
+        throw new NotFoundException('User (updated_By) not found');
+      }
+      branch.updated_By = updatedBy;
+    }
+
+    if (updateBranchDto.created_By) {
+      const createdBy = await this.usersRepository.findOne({ where: { id: updateBranchDto.created_By } });
+      if (!createdBy) {
+        throw new NotFoundException('User (created_By) not found');
+      }
+      branch.created_By = createdBy;
+    }
+
+    // Update the branchManager if provided
+    if (updateBranchDto.branchManager) {
+      const branchManager = await this.employeeRepository.findOne({ where: { id: updateBranchDto.branchManager } });
+      if (!branchManager) {
+        throw new NotFoundException('Employee (branchManager) not found');
+      }
+      branch.branchManager = branchManager;
+    } else {
+      branch.branchManager = null; // Set to null if branchManager is removed
+    }
+
+    Object.assign(branch, updateBranchDto);
 
     return this.branchRepository.save(branch);
   }
@@ -89,42 +131,7 @@ export class BranchsService {
     return branch;
   }
 
-  // Update a branch by ID
-  async update(id: number, updateBranchDto: UpdateBranchDto): Promise<Branch> {
-    const branch = await this.findOne(id);
-    if (!branch) {
-      throw new NotFoundException('Branch not found');
-    }
 
-    if (updateBranchDto.updated_By) {
-      const updatedBy = await this.usersRepository.findOne({ where: { id: updateBranchDto.updated_By } });
-      if (!updatedBy) {
-        throw new NotFoundException('User (updated_By) not found');
-      }
-      branch.updated_By = updatedBy;
-    }
-
-    if (updateBranchDto.created_By) {
-      const createdBy = await this.usersRepository.findOne({ where: { id: updateBranchDto.created_By } });
-      if (!createdBy) {
-        throw new NotFoundException('User (created_By) not found');
-      }
-      branch.created_By = createdBy;
-    }
-
-    // Update the branchManager if provided
-    if (updateBranchDto.branchManager) {
-      const branchManager = await this.employeeRepository.findOne({ where: { id: updateBranchDto.branchManager } });
-      if (!branchManager) {
-        throw new NotFoundException('Employee (branchManager) not found');
-      }
-      branch.branchManager = branchManager;
-    }
-
-    Object.assign(branch, updateBranchDto);
-
-    return this.branchRepository.save(branch);
-  }
 
   // Remove a branch by ID
   async remove(id: number): Promise<void> {

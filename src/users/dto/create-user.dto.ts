@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsNotEmpty, IsBoolean, IsOptional, IsNumber, IsDate } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, IsBoolean, IsOptional, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -13,7 +13,12 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ description: 'The email of the user', example: 'superadmin@example.com' })
+  @ApiProperty({ description: 'The password confirmation', example: 'SuperAdmin@123' })
+  @IsString()
+  @IsNotEmpty()
+  confirmPassword: string;
+
+  @ApiProperty({ description: 'The email of the user', example: 'superadmin@gmail.com' })
   @IsEmail()
   @IsNotEmpty()
   email: string;
@@ -23,15 +28,15 @@ export class CreateUserDto {
   @IsNotEmpty()
   role_id: number;
 
-  @ApiProperty({ description: 'The ID of the employee associated with the user', example: 1 })
+  @ApiProperty({ description: 'The ID of the employee associated with the user', example: 1, nullable: true })
   @IsNumber()
-  @IsNotEmpty()
-  employee_id: number;
+  @IsOptional()
+  employee_id?: number;
 
-  @ApiProperty({ description: 'The ID of the branch associated with the user', example: 1 })
+  @ApiProperty({ description: 'The ID of the branch associated with the user', example: 1, nullable: true })
   @IsNumber()
-  @IsNotEmpty()
-  branch_id: number;
+  @IsOptional()
+  branch_id?: number;
 
   @ApiProperty({ description: 'Indicates whether the user is allowed to reset their password', example: true })
   @IsBoolean()
@@ -43,12 +48,12 @@ export class CreateUserDto {
   @IsOptional()
   active?: boolean;
 
-  @ApiProperty({ description: 'The user who created this account', example: 1 })
+  @ApiProperty({ description: 'The user who created this account', example: 1, nullable: true })
   @IsNumber()
-  @IsNotEmpty()
-  created_By: number;
+  @IsOptional()
+  created_By?: number;
 
-  @ApiProperty({ description: 'The user who last updated this account', example: 1 })
+  @ApiProperty({ description: 'The user who last updated this account', example: 1, nullable: true })
   @IsNumber()
   @IsOptional()
   updated_By?: number;
