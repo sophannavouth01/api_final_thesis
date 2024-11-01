@@ -120,17 +120,21 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<User | undefined> {
+  async findByUsernameAndBranchName(username: string, branchName: string): Promise<User | undefined> {
     try {
       return await this.usersRepository.findOne({
-        where: { email },
-        relations: ['role', 'branch', 'employee', 'created_By', 'updated_By'],
+        where: {
+          username,
+          branch: { name: branchName },  // Assuming `branch` is a relation with a `name` field
+        },
+        relations: ['branch'],  // Ensure the branch relation is loaded
       });
     } catch (error) {
-      console.error('Failed to find user by email:', error.message);
-      throw new BadRequestException('Failed to retrieve user by email.');
+      console.error('Failed to find user by username and branch name:', error.message);
+      throw new BadRequestException('Failed to retrieve user by username and branch name.');
     }
   }
+  
 
   async update(id: number, updateData: Partial<User>): Promise<User> {
     try {

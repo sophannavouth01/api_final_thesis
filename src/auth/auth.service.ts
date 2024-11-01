@@ -68,30 +68,47 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
-  async resetPassword(email: string, resetPasswordDto: ResetPasswordDto) {
-    const { newPassword, confirmPassword } = resetPasswordDto;
-
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { username, branchName, newPassword, confirmPassword } = resetPasswordDto;
+  
     // Check if the passwords match
     if (newPassword !== confirmPassword) {
       throw new BadRequestException('Passwords do not match.');
     }
-
-    // Find user by email
-    const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('User not found.');
+  
+    try {
+      // Find user by username and branch name
+      const user = await this.usersService.findByUsernameAndBranchName(username, branchName);
+      if (!user) {
+        throw new UnauthorizedException('User with the specified username and branch not found.');
+      }
+  
+      if (!user.allowResetPassword) {
+        throw new BadRequestException('Password reset is not allowed for this user.');
+      }
+  
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      // Update the user's password in the database
+      await this.usersService.update(user.id, { password: hashedPassword });
+  
+      return { message: 'Password reset successfully.' };
+  
+    } catch (error) {
+      // Log the error to debug if needed
+      console.error('Error resetting password:', error.message);
+  
+      // Return specific error messages based on error type
+      if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException(error.message || 'User not found.');
+      } else if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message || 'Password reset is not allowed for this user.');
+      } else {
+        throw new BadRequestException('An unexpected error occurred. Please try again later.');
+      }
     }
-
-    if (!user.allowResetPassword) {
-      throw new BadRequestException('Password reset is not allowed for this user.');
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update the user's password in the database
-    await this.usersService.update(user.id, { password: hashedPassword });
-
-    return { message: 'Password reset successfully.' };
   }
+  
+  
 }
