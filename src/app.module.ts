@@ -17,6 +17,7 @@ import { CustomerModule } from './customer/customer.module';
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
+      socketPath: '/tmp/mysql.sock', 
       host: process.env.DATABASE_HOST,
       port: parseInt(process.env.DATABASE_PORT, 10),
       username: process.env.DATABASE_USERNAME,

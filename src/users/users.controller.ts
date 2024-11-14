@@ -51,26 +51,18 @@ export class UsersController {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
 
-    // Construct updateData with fields from updateUserDto only if they are provided
-    const updateData: Partial<User> = {};
-
-    if (updateUserDto.username) updateData.username = updateUserDto.username;
-    if (updateUserDto.email) updateData.email = updateUserDto.email;
-    if (updateUserDto.allowResetPassword !== undefined) updateData.allowResetPassword = updateUserDto.allowResetPassword;
-    if (updateUserDto.active !== undefined) updateData.active = updateUserDto.active;
-    if (updateUserDto.createdAt) updateData.createdAt = updateUserDto.createdAt;
-
-    if (updateUserDto.updated_By) {
-      const updaterUser = await this.usersService.findOne(updateUserDto.updated_By);
-      updateData.updated_By = updaterUser;
-    }
-
-    if (updateUserDto.role_id) {
-      updateData.role = await this.usersService.findRoleById(updateUserDto.role_id);
-    }
-    if (updateUserDto.branch_id) {
-      updateData.branch = await this.usersService.findBranchById(updateUserDto.branch_id);
-    }
+    // Construct updateData with fields from updateUserDto that map to IDs as required in CreateUserDto
+    const updateData: Partial<CreateUserDto> = {
+      username: updateUserDto.username,
+      email: updateUserDto.email,
+      allowResetPassword: updateUserDto.allowResetPassword,
+      active: updateUserDto.active,
+      createdAt: updateUserDto.createdAt,
+      updated_By: updateUserDto.updated_By,  // Use ID here as required by CreateUserDto
+      role_id: updateUserDto.role_id,
+      branch_id: updateUserDto.branch_id,
+      employee_id: updateUserDto.employee_id,
+    };
 
     return await this.usersService.update(+id, updateData);
   }

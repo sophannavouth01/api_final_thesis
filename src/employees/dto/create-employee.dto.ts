@@ -27,10 +27,7 @@ export class CreateEmployeeDto {
   @IsOptional()
   phone2?: string;
 
-  @ApiProperty({ description: 'The unique employee ID', example: '001' })
-  @IsString()
-  @IsNotEmpty()
-  employeeId: string;
+
 
   @ApiProperty({ description: 'The base salary of the employee', example: 5000 })
   @IsNumber()

@@ -14,12 +14,12 @@ export class CreateAgentDto {
 
   @ApiProperty({ description: 'The English name of the agent', example: 'Doe' })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   enName: string;
 
   @ApiProperty({ description: 'The email of the agent', example: 'johndoe@gmail.com' })
   @IsEmail()
-  @IsNotEmpty()
+  @IsOptional()
   email: string;
 
 

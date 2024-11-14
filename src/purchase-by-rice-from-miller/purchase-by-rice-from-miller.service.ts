@@ -146,14 +146,14 @@ export class PurchaseByRiceFromMillerService {
 
   async findAll(): Promise<PurchaseByRiceFromMiller[]> {
     return this.purchaseByRiceFromMillerRepository.find({
-      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','customer'],
+      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','agent.position','agent.branch','customer'],
     });
   }
 
   async findOne(id: number): Promise<PurchaseByRiceFromMiller> {
     const purchaseRecord = await this.purchaseByRiceFromMillerRepository.findOne({
       where: { id: id.toString() },
-      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','customer'],
+      relations: ['created_By', 'updated_By', 'miller', 'branch', 'agent','agent.position','agent.branch','customer'],
     });
 
     if (!purchaseRecord) {

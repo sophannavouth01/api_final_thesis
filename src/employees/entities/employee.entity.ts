@@ -26,8 +26,6 @@ export class Employee {
   @Column({ nullable: true })
   phone2: string;
 
-  @Column({ unique: true })
-  employeeId: string;
 
   @Column()
   dateOfBirth: Date;
